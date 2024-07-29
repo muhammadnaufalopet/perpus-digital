@@ -1,95 +1,100 @@
 <template>
-    <div class="container-fluid pb-5" style="background-color:#6278B1">
-        <div class="text-center p-5 text-white">
-            <h2>Riwayat kunjungan</h2>
+<div class="wrapper">
+  <div class="content"></div>
+  <div class="container-fluid text-white" style="padding-top: 160px;">
+    <div class="row">
+      <div class="col-lg-12 ">
+        <h2 class="text-center my-4 ">RIWAYAT KUNJUNGAN</h2>
+        <div class="my-3">menampilkan {{ visitors.length }} dari {{ amountVisitors}}</div>
+        <div class="table table-responsive">
+          <table class="table table-bordered border-dark text-white ">
+            <thead>
+                <tr class="text-center">
+                  <td>ID</td>
+                  <td>NAMA</td>
+                  <td>KATEGORI</td>
+                  <td>KELAS</td>
+                  <td>KEPERLUAN</td>
+                  <td>TANGGAL</td>
+                  <td>WAKTU</td>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(visitor,i) in visitors" :key="i" class="text-center">
+                  <td>{{ i+1 }}.</td>
+                  <td>{{ visitor.nama }}</td>
+                  <td>{{ visitor.keanggotaan.nama }}</td>
+                  <td>{{ visitor.tingkat}}-{{ visitor.jurusan }}{{ visitor.kelas }}</td>
+                  <td>{{ visitor.keperluan.nama }}</td>
+                  <td>{{ visitor.tanggal }}</td>
+                  <td>{{ visitor.waktu.split(".")[0] }} </td>
+                </tr>
+              </tbody>
+          </table>
         </div>
-            <div class="row m-0 text-white">
-                <div class="layer pt2">
-                    <div class="row">
-                        <div class="col-sm-1 sp-5">
-                            <div class="icon1">
-                                <i class="bi bi-chevron-left"></i>
-                            </div>
-                        </div>
-                        <div class="col-sm-11 mb-2">
-                            <div class="input-group flex-nowrap rounded" style="box-shadow: 2px 2px 2px #424242;">
-                                <input type="search" class="form-control" placeholder="Cari..." aria-label="Search" />
-                                <span class="input-group-text">
-                                    <i class="bi bi-search"></i>
-                                </span> 
-                            </div>
-                        </div>   
-                    </div>
-                </div>
-            </div>
-            <div class="my-3 ps-2 text-white pt-5"  style="font-size: medium;">Menampilkan 4 dari 4</div>
-            <table class="table table-bordered text-white text-center" style="font-size: medium;">
-                <thead>
-                    <tr>
-                        <td>#</td>
-                        <td>NAMA</td>
-                        <td>KATEGORI</td>
-                        <td>KELAS</td>
-                        <td>WAKTU</td>
-                        <td>KEPERLUAN</td>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th>1.</th>
-                        <td>Opet</td>
-                        <td>Siswa</td>
-                        <td>XI PPLG 3</td>
-                        <td>10 Maret 2024</td>
-                        <td>Membaca buku</td>
-                    </tr>
-                    <tr>
-                        <th>2.</th>
-                        <td>Opet</td>
-                        <td>Siswa</td>
-                        <td>XI PPLG 3</td>
-                        <td>10 Maret 2024</td>
-                        <td>Membaca buku</td>
-                    </tr>
-                    <tr>
-                        <th>3.</th>
-                        <td>Opet</td>
-                        <td>Siswa</td>
-                        <td>XI PPLG 3</td>
-                        <td>10 Maret 2024</td>
-                        <td>Membaca buku</td>
-                    </tr>
-                    <tr>
-                        <th>4.</th>
-                        <td>Opet</td>
-                        <td>Siswa</td>
-                        <td>XI PPLG 3</td>
-                        <td>10 Maret 2024</td>
-                        <td>Membaca buku</td>
-                    </tr>
-                </tbody>
-            </table>
+        </div>
+        <div class="row d-flex justify-content-end text-center">
+          <nuxt-link to="/buku" class="col-lg-3 col-4 btn btn-dark btn-lg rounded-5 ">Mencari Buku</nuxt-link>
+          
+          <nuxt-link to="/" class="col-lg-3 col-4 btn btn-dark btn-lg rounded-5 ">Selesai</nuxt-link>
+        </div>
+      
+        <!-- <button type="submit" class="btn btn-dark btn-lg rounded-5 px-5">Selesai</button> -->
+        </div>
+      </div>
     </div>
-    <NuxtLink to="/buku">
-                            <input type="submit" class="btn" value="Kirim">
-                        </NuxtLink>
+  
+  <!-- <button type="submit" class="btn btn-dark btn-lg rounded-5 px-5">Mencari Buku</button> -->
 </template>
 
+<script setup>
+const supabase= useSupabaseClient()
+
+const visitors = ref([])
+const amountVisitors = ref(0)
+
+const getPengunjung = async () => {
+  const { data, error } = await supabase.from('pengunjung').select(`*, keanggotaan(*), keperluan(*)`)
+  if(data) visitors.value = data
+}
+
+async function getAmountVisitors()
+{
+    const {data , count} = await supabase.from('pengunjung')
+    .select('*', { count: "exact"})
+    if (data) amountVisitors.value = count
+}
+
+onMounted(() => {
+    getPengunjung()
+    getAmountVisitors()
+})
+</script>
+
 <style scoped>
-.text-center{
-    font-family: "League Spartan", sans-serif;
-    font-size: 190%;
+
+.content {
+  background-image: url('@/assets/images2.jpg');
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  background-size: cover;
+  width: 100%;
+  height: 100%;
+  bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  position: fixed;
+  z-index: -1;
 }
-.input-group-text {
-  background-color: #fff;
-  border-left: none !important;
+.btn{
+  font-family: sans Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+  background-color: rgb(255, 255, 255);
+  color: rgb(0, 0, 0);
+  float :right;
 }
-.layer{
-    width: 90%;
-    margin-left: 5%;
-    padding: 0;
+
+thead, tbody, td{
+  border: 2px solid black;
 }
-.form-control {
-  border-right:none;
-}
-</style>
+
+</style> 

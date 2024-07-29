@@ -1,107 +1,121 @@
 <template>
-    <div class="container-fluid pb-5" style="background-color:#6278B1">
-        <div class="text-center text-white pt-5">
-            <h2>Pencarian buku</h2>
-        </div>
-        <div class="layer pt-3 justify-content-center text-white">
-            <div class="row m-0">
-                <div class="layer2 pt-2">
-                    <div class="row">
-                        <div class="col-sm-1 ">
-                            <div class="icon1">
-                                <i class="bi bi-chevron-left"></i>
-                            </div>
-                        </div>
-                        <div class="col-sm-3 mb-2">
-                            <select class="form-select" aria-label="Default select example" style="box-shadow: 2px 2px 2px #424242;">
-                                <option selected>Kategori buku</option>
-                                <option value="1">Pendidikan</option>
-                                <option value="2">Novel</option>
-                                <option value="3">Komik</option>
-                            </select>
-                        </div>
-                        <div class="col-sm-8 mb-2">
-                            <div class="input-group flex-nowrap rounded" style="box-shadow: 2px 2px 2px #424242;">
-                                <input type="search" class="form-control" placeholder="Cari..." aria-label="Search" />
-                                <span class="input-group-text">
-                                    <i class="bi bi-search"></i>
-                                </span> 
-                            </div>
-                        </div>   
+    <div class="wrapper">
+    <div class="content"></div>
+        <div class="container-fluid" style="padding-top: 100px;">
+                <form @submit.prevent="getBooks" class="row pt-5 d-flex justify-content-center">
+                    <div class="col-lg-10">
+                        <input v-model="keyword" type="search" class="form-control form-control-md rounded-5" name="cari-buku" id="cari-buku" placeholder="Mau baca apa hari ini?" autocomplete="off">
+                    </div>
+                </form>
+                <div class="row my-3 d-flex justify-content-center ps-0">
+                    <p class="col-5 m-0 pt-2 text-white" style="letter-spacing: 3px;">Menampilkan {{ books.length }} buku</p>
+                    <p class="col-2 text-white m-0 text-end mt-2" style="letter-spacing: 3px;">kategori :</p>
+                    <div class="col-3">
+                        <select v-model="keyword" name="kategori" id="kategori" class="form-control form-control-sm rounded-5 form-select">
+                            <option value="" disabled selected>Kategori?</option>
+                            <option v-for="(kategori, i) in kategories" :key="i" :value="kategori.nama">{{ kategori.nama }}</option>
+                        </select>
                     </div>
                 </div>
-            </div>
-            <div class="pt-5 ps-5 ms-4 text-white" style="font-size: medium;">Menampilkan 2 dari 2</div>
-            <div class="layer3 p-4">
-                <div class="row buku">
-                    <div class="col-lg-2 mb-4">
-                        <div class="card">
-                            <img src="~/assets/img/bot.jpeg" class="card-img-top" alt="...">
-                            <div class="card-body p-0">
-                                <a href="#" class="btn d-flex justify-content-center">Lihat detail</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-2 mb-4">
-                        <div class="card">
-                            <img src="~/assets/img/mariposa.jpeg" class="card-img-top" alt="...">
-                            <NuxtLink to="/detail">
-                                <div class="card-body p-0">
-                                    <a href="#" class="btn d-flex justify-content-center">Lihat detail</a>
-                                </div>
+            <div class="row">
+                <div v-for="(book, i) in bookFiltered" :key="i" class="col">
+                    <div class="col-lg-11 col-1 card cb">
+                        <div class="card-body">
+                            <NuxtLink :to="`/buku/${book.id}`" style="text-decoration:none">
+                                <img :src="book.cover" class="cover border" alt="cover">
                             </NuxtLink>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>  
+            <div class="row float-end">
+                        <nuxt-link to="/" class="btn btn-dark btn-lg rounded-5 px-5">selesai</nuxt-link>
+            </div>
+        </div>
     </div>
+
 </template>
 
-<style scoped>
-.text-center{
-    font-family: "League Spartan", sans-serif;
-    font-size: 190%;
-}
-.container-fluid{
-    font-family: "League Spartan", sans-serif;
-    font-size: 190%;
-}
-.input-group-text {
-  background-color: #fff;
-  border-left: none !important;
-}
-.form-control {
-  border-right:none;
-}
-.layer2{
-    width: 90%;
-    margin-left: 5%;
-    padding: 0;
-}
-.layer3{
-    background-color: #cbd2e5;
-    border-radius: 25px;
-    width: 90%;
-    margin-left: 5%;
-    box-shadow: 2px 2px 2px #424242;
-}
-.row.buku{
-    border-radius: 50px;
-    object-fit: cover;
-    
+<script setup>
+const supabase = useSupabaseClient()
+
+const books = ref([])
+const kategories = ref([])
+const keyword = ref('')
+const kategori = ref('')
+
+async function getBooks() {
+    const {data, error} = await supabase.from('buku' )
+    .select(`*, kategori(*)`)
+    .ilike('judul', `%${keyword.value}%`)
+    if (data) books.value= data
 }
 
-.card-img-top{
-    width: 80%;
+async function getKategori(){
+    const{data, error} = await supabase.from('kategori_buku')
+    .select('*')
+    if(data) kategories.value = data
+}
+
+const bookFiltered = computed (() => {
+    return books.value.filter((b) => {
+        return (
+            b.judul?.toLowerCase().includes(keyword.value?.toLowerCase()) ||
+            b.kategori?.nama.toLowerCase().includes(keyword.value?.toLowerCase())
+        )
+    })
+}) 
+
+
+onMounted(() => {
+    getBooks()
+    getKategori()
+})
+</script>
+
+<style scoped>
+
+.wrapper {
+    padding-top: 10%;
+}
+.content {
+    background-image: url('@/assets/images.jpg');
+    background-size: cover;
+    width: 100%;
+    height: 100%;
+    bottom: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    position: fixed;
+    z-index: -1;
+
+}
+
+.card-body {
+    width: 100%;
     height: 100%;
     object-fit: cover;
     object-position: 0 30;
-    padding-top: 5%;
-    margin-left: 10%;
 }
 .btn{
-    font-size: 50%;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    background-color: rgb(255, 255, 255);
+    color: black;
+    width: 150px;
+    height: 50px;
+}
+.cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 0 30;
+}
+.cb {
+    background-color: #fffeee83;
+    border: 0;
+    height: 250px;
+    width: 180px;
+    margin: 5px 5px;
 }
 </style>
-        
